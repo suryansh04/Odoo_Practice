@@ -7,7 +7,7 @@ const App = () => {
   return (
     <div>
       <MainScreen />
-      <CrimeForm />
+      
     </div>
   );
 };

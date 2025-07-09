@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -8,35 +8,10 @@ import { db, storage } from "./firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-export function CrimeForm() {
-  const [latitude] = useState("28.6139");
-  const [longitude] = useState("77.2090");
-  const [address, setAddress] = useState("");
+export function CrimeForm({ address, latitude, longitude, onClose }) {
   const [crimeType, setCrimeType] = useState("");
   const [description, setDescription] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-
-  useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.status === "OK" && data.results.length > 0) {
-          setAddress(data.results[0].formatted_address);
-        } else {
-          setAddress("Address not found");
-        }
-      } catch (error) {
-        console.error("Error fetching address:", error);
-        setAddress("Error retrieving address");
-      }
-    };
-
-    fetchAddress();
-  }, [latitude, longitude]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,19 +21,14 @@ export function CrimeForm() {
       return;
     }
 
-    toast.loading("Submitting report...", { id: "submit-toast" });
-
+    let imageUrl = null;
     try {
-      let imageUrl = "";
-
-      // 1. Upload image if selected
       if (imageFile) {
-        const storageRef = ref(storage, `crimeImages/${Date.now()}_${imageFile.name}`);
-        await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(storageRef);
+        const imageRef = ref(storage, `crimeImages/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(imageRef, imageFile);
+        imageUrl = await getDownloadURL(imageRef);
       }
 
-      // 2. Add document to Firestore
       await addDoc(collection(db, "crimeReports"), {
         address,
         latitude,
@@ -66,31 +36,38 @@ export function CrimeForm() {
         crimeType,
         description,
         imageUrl,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
 
-      toast.success("Your crime report has been submitted!", { id: "submit-toast" });
+      toast.success("Your crime report has been submitted!");
       setCrimeType("");
       setDescription("");
       setImageFile(null);
+      onClose();
     } catch (error) {
       console.error("Error adding document: ", error);
-      toast.error("Failed to submit. Please try again.", { id: "submit-toast" });
+      toast.error("Failed to submit. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen bg-white bg-opacity-90 backdrop-blur-md flex items-center justify-center">
       <Toaster position="top-center" reverseOrder={false} />
 
-      <div className="w-full max-w-md rounded-lg border border-gray-300 bg-white p-8 shadow-md">
+      <div className="w-full max-w-md rounded-lg border border-gray-300 bg-white p-8 shadow-md relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-black"
+        >
+          ✕
+        </button>
+
         <h2 className="text-2xl font-bold text-black">Report an Incident</h2>
         <p className="mt-2 text-sm text-gray-700">
           Please provide details about the crime you are reporting.
         </p>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* Address Field */}
           <LabelInputContainer>
             <Label htmlFor="address" className="text-black font-semibold">
               Address
@@ -106,7 +83,6 @@ export function CrimeForm() {
             />
           </LabelInputContainer>
 
-          {/* Crime Type Dropdown */}
           <LabelInputContainer>
             <Label htmlFor="crime-type" className="text-black font-semibold">
               Crime Type
@@ -130,7 +106,6 @@ export function CrimeForm() {
             </select>
           </LabelInputContainer>
 
-          {/* Description */}
           <LabelInputContainer>
             <Label htmlFor="what-happened" className="text-black font-semibold">
               What Happened?
@@ -147,17 +122,17 @@ export function CrimeForm() {
             />
           </LabelInputContainer>
 
-          {/* Image Upload */}
           <LabelInputContainer>
             <Label htmlFor="image-upload" className="text-black font-semibold">
-              Upload Image (Optional)
+              Upload Image
             </Label>
-            <Input
+            <input
               id="image-upload"
+              name="image-upload"
               type="file"
               accept="image/*"
-              onChange={(e) => setImageFile(e.target.files[0])}
-              className="border border-gray-300 rounded-md p-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-black/30"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="w-full border border-gray-300 rounded-md p-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-black/30"
             />
           </LabelInputContainer>
 
@@ -173,7 +148,7 @@ export function CrimeForm() {
   );
 }
 
-const LabelInputContainer = ({ children, className }) => (
+const LabelInputContainer = ({ children, className = "" }) => (
   <div className={cn("flex w-full flex-col space-y-2", className)}>
     {children}
   </div>
