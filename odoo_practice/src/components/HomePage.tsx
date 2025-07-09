@@ -34,9 +34,12 @@ const HomePage: React.FC = () => {
             className="mt-4 text-lg md:text-xl max-w-2xl mx-auto text-muted-foreground"
         />
         
-        <button className="mt-24 px-8 py-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+        <Link 
+          to="/login" 
+          className="inline-block mt-24 px-8 py-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
           Report a Crime
-        </button>
+        </Link>
 
         
       </BackgroundLines>

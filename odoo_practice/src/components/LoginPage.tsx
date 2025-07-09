@@ -23,7 +23,8 @@ const LoginPage: React.FC = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard");
+      // Redirect to main screen after successful login
+      navigate("/main");
     } catch (error: any) {
       setError(error.message || "Failed to sign in");
     } finally {

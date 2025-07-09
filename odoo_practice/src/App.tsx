@@ -5,7 +5,7 @@ import { auth } from "./firebase";
 import HomePage from "./components/HomePage";
 import LoginPage from "./components/LoginPage";
 import SignupPage from "./components/SignupPage";
-import Dashboard from "./components/Dashboard";
+import MainScreen from "./MainScreen";
 
 // Protected Route Component
 type ProtectedRouteProps = {
@@ -45,10 +45,10 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route
-          path="/dashboard"
+          path="/main"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <MainScreen />
             </ProtectedRoute>
           }
         />

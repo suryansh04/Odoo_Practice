@@ -35,8 +35,8 @@ const SignupPage: React.FC = () => {
         createdAt: new Date().toISOString(),
       });
 
-      // Redirect to dashboard on successful signup
-      navigate("/dashboard");
+      // Redirect to main screen after successful signup
+      navigate("/main");
     } catch (error: any) {
       setError(error.message || "Failed to create an account");
     } finally {
