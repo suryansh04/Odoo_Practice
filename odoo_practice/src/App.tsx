@@ -1,7 +1,11 @@
 import React from "react";
+import './index.css'
+import CrimeForm from './CrimeReportForm'
 
-const App = () => {
-  return <div>App</div>;
+function App(){
+  
+  return <CrimeForm/>;
+ 
 };
 
 export default App;
